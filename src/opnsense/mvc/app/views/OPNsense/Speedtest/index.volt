@@ -59,6 +59,10 @@
         </tbody>
     </table>
 </div>
+<h2>History Chart</h2>
+<div class="content-box">
+    <div id="speedtest-chart" style="width: 100%; height: 400px;"></div>
+</div>
 <h2>Run speedtest</h2>
 <div class="content-box">
     <div class="content-box-main collapse in" id="system_information-container" style="display:inline">
@@ -172,6 +176,7 @@
     </table>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script>
     function stat_reload() {
         ajaxCall(url = "/api/speedtest/service/showstat", sendData = {}, callback = function(l, status) {
@@ -193,6 +198,117 @@
                     "<td class=\"text-left\" style=\"\">" + parseFloat(l[i][7]).toFixed(2) + "</td></tr>"
             }
             $('#log_block').html(obj);
+            chart_reload(l);
+        });
+    };
+    function chart_reload(logData) {
+        var chartDom = document.getElementById('speedtest-chart');
+        var myChart = echarts.init(chartDom);
+        
+        // Sort data by timestamp (oldest first)
+        var sortedData = logData.slice().reverse();
+        
+        // Extract data for chart
+        var timestamps = [];
+        var downloadSpeeds = [];
+        var uploadSpeeds = [];
+        var latencies = [];
+        
+        for (var i = 0; i < sortedData.length; i++) {
+            timestamps.push(sortedData[i][0]);
+            downloadSpeeds.push(parseFloat(sortedData[i][5]).toFixed(2));
+            uploadSpeeds.push(parseFloat(sortedData[i][6]).toFixed(2));
+            latencies.push(parseFloat(sortedData[i][7]).toFixed(2));
+        }
+        
+        var option = {
+            title: {
+                text: 'Speedtest History'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                }
+            },
+            legend: {
+                data: ['Download (Mbps)', 'Upload (Mbps)', 'Latency (ms)'],
+                top: 30
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: timestamps,
+                axisLabel: {
+                    rotate: 45,
+                    formatter: function(value) {
+                        return value.substring(0, 16);
+                    }
+                }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'Speed (Mbps)',
+                    position: 'left',
+                    axisLabel: {
+                        formatter: '{value}'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: 'Latency (ms)',
+                    position: 'right',
+                    axisLabel: {
+                        formatter: '{value}'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: 'Download (Mbps)',
+                    type: 'line',
+                    data: downloadSpeeds,
+                    smooth: true,
+                    itemStyle: {
+                        color: '#5470c6'
+                    },
+                    yAxisIndex: 0
+                },
+                {
+                    name: 'Upload (Mbps)',
+                    type: 'line',
+                    data: uploadSpeeds,
+                    smooth: true,
+                    itemStyle: {
+                        color: '#91cc75'
+                    },
+                    yAxisIndex: 0
+                },
+                {
+                    name: 'Latency (ms)',
+                    type: 'line',
+                    data: latencies,
+                    smooth: true,
+                    itemStyle: {
+                        color: '#fac858'
+                    },
+                    yAxisIndex: 1
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+        
+        // Make chart responsive
+        window.addEventListener('resize', function() {
+            myChart.resize();
         });
     };
     function version_reload() {
