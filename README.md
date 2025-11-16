@@ -9,6 +9,9 @@ sudo pkg add https://github.com/mihakralj/opnsense-speedtest/raw/main/work/pkg/o
 ## remove
 `sudo pkg delete os-speedtest-devel`
 
+### Version 0.8_1
+- updated package to support FreeBSD 14:amd64 (latest OPNsense)
+
 ### Version 0.7_1
 - removed automatic invocation of install_speedtest.sh from GUI
 - removed the bug on widget control
